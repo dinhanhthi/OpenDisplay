@@ -1,0 +1,48 @@
+name: "OpenDisplay"
+options:
+  deploymentTarget:
+    macOS: "26.0"
+  xcodeVersion: "27.0"
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    # Sparkle 2.10.1, pinned by commit (git ls-remote ... refs/tags/2.10.1; lightweight tag, no ^{}).
+    revision: ab7d71291238df6e0492143b120c9b696a35f603
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+    # Apple Silicon only.
+    ARCHS: arm64
+    # Ad-hoc default; the app target overrides it with Developer ID.
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: "86H6CNLN4C"
+targets:
+  "OpenDisplay":
+    type: application
+    platform: macOS
+    sources:
+      # Contains Assets.xcassets (app icon, menu bar icon, About logo), generated from assets/logo.png.
+      - path: App
+    dependencies:
+      - package: Sparkle
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "com.math2it.opendisplay"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: App/Info.plist
+        INFOPLIST_KEY_LSMinimumSystemVersion: "$(MACOSX_DEPLOYMENT_TARGET)"
+        INFOPLIST_KEY_CFBundleDisplayName: "OpenDisplay"
+        INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Anh-Thi DINH"
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_APP_SANDBOX: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_LSUIElement: YES
+        # Debug is Developer ID-signed too, so the app's identity (and any grant tied to it) survives rebuilds
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "Developer ID Application"
+    # Empty on purpose: XcodeGen writes a shared scheme named OpenDisplay.
+    scheme: {}

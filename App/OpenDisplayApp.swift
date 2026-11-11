@@ -29,9 +29,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItemController: StatusItemController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        PrivateAPI.logResolved()
         // The launch refresh: the modes load while the status item is set up.
         displayStore.refresh()
         statusItemController = StatusItemController(updater: updater, displayStore: displayStore)
         updater.start()
+        #if DEBUG
+        // After `refresh()`: a command waits for the launch refresh.
+        DebugCommands.run(store: displayStore)
+        #endif
     }
 }

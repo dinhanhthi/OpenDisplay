@@ -41,6 +41,8 @@ targets:
         ENABLE_APP_SANDBOX: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_LSUIElement: YES
+        # Objective-C that Swift sees: the rotation shim (App/Display/ODRotation.h).
+        SWIFT_OBJC_BRIDGING_HEADER: App/OpenDisplay-Bridging-Header.h
         # Debug is Developer ID-signed too, so the app's identity (and any grant tied to it) survives rebuilds
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "Developer ID Application"

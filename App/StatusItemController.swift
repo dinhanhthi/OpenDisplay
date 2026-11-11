@@ -3,13 +3,17 @@ import os
 import SwiftUI
 
 /// The menu bar item and its popover. The popover is `.applicationDefined`: the app closes it itself (a second
-/// click on the icon, Esc, or a click outside), so it stays open across display changes.
+/// click on the icon, Esc, or a click outside), so it stays open across display changes. While Sparkle holds an
+/// update found by a scheduled check, the logo has a download badge.
 @MainActor
 final class StatusItemController: NSObject {
     /// While true, a click outside the popover does not close it.
     var keepsOpen = false
 
+    private let updater: Updater
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+    /// The logo without the update badge; nil when the item shows the "od" title.
+    private var logo: NSImage?
     private let popover = NSPopover()
     /// Whether the popover is meant to be open; the system may close it during a display change.
     private var isOpen = false
@@ -19,9 +23,15 @@ final class StatusItemController: NSObject {
     private let displayStore: DisplayStore
 
     init(updater: Updater, displayStore: DisplayStore) {
+        self.updater = updater
         self.displayStore = displayStore
         super.init()
         setUpButton()
+        // Only with the logo: the "od" title has no badge, so Sparkle shows its own alert.
+        if logo != nil {
+            updater.onAvailableUpdateChange = { [weak self] in self?.refreshUpdateState() }
+            refreshUpdateState()
+        }
         popover.behavior = .applicationDefined
         let hostingController = NSHostingController(
             rootView: PopoverView(
@@ -50,6 +60,7 @@ final class StatusItemController: NSObject {
     isolated deinit {
         removeMonitors()
         NotificationCenter.default.removeObserver(self)
+        updater.onAvailableUpdateChange = nil
     }
 
     /// The logo in full color at 18 pt, or the title "od" so the item is never invisible.
@@ -62,6 +73,7 @@ final class StatusItemController: NSObject {
             image.size = NSSize(width: 18, height: 18)
             image.accessibilityDescription = "OpenDisplay"
             button.image = image
+            logo = image
         } else {
             Logger(subsystem: "com.math2it.opendisplay", category: "StatusItem")
                 .error("MenuBarIcon is missing from the asset catalog; showing the title instead")
@@ -69,6 +81,39 @@ final class StatusItemController: NSObject {
         }
         button.target = self
         button.action = #selector(togglePopover)
+    }
+
+    /// The plain logo, or, while an update waits, the logo with a download badge at its bottom-right corner.
+    private func refreshUpdateState() {
+        guard updater.availableUpdateVersion != nil else {
+            statusItem.button?.image = logo
+            return
+        }
+        let logo = logo
+        let badged = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { rect in
+            // Full color, not a template: drawn as is.
+            logo?.draw(in: rect)
+            let badge = NSRect(x: rect.maxX - 9, y: rect.minY, width: 9, height: 9)
+            // A white disc, then a bold arrow in a deep green (the system green, 45 % of the way to black).
+            NSColor.white.setFill()
+            NSBezierPath(ovalIn: badge).fill()
+            let green = NSColor.systemGreen.blended(withFraction: 0.45, of: .black) ?? .systemGreen
+            let configuration = NSImage.SymbolConfiguration(pointSize: 9, weight: .black)
+                .applying(NSImage.SymbolConfiguration(paletteColors: [green]))
+            if let arrow = NSImage(systemSymbolName: "arrow.down", accessibilityDescription: nil)?
+                .withSymbolConfiguration(configuration) {
+                // Aspect-fit in the disc's inner square, centred.
+                let inner = badge.insetBy(dx: 1, dy: 1)
+                let size = arrow.size
+                let scale = min(inner.width / size.width, inner.height / size.height)
+                let fitted = NSSize(width: size.width * scale, height: size.height * scale)
+                arrow.draw(in: NSRect(x: badge.midX - fitted.width / 2, y: badge.midY - fitted.height / 2,
+                                      width: fitted.width, height: fitted.height))
+            }
+            return true
+        }
+        badged.accessibilityDescription = "OpenDisplay, update available"
+        statusItem.button?.image = badged
     }
 
     @objc private func togglePopover() {

@@ -4,6 +4,8 @@ All notable changes to OpenDisplay are listed here. `scripts/publish-release.sh`
 
 ## [Unreleased]
 
+- When the menu bar icon is shown and a new version is available, the icon gets a small green download badge and the popover's "Check for Updates…" button reads "Update to OpenDisplay <version>…" instead of an alert popping up.
+
 ## [0.1.0] - 2026-11-11
 
 ### Added

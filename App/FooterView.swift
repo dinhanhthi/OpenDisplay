@@ -56,7 +56,9 @@ struct FooterView: View {
                     Button("Quit") { NSApp.terminate(nil) }
                         .keyboardShortcut(.defaultAction)
                 } else {
-                    Button("Check for Updates…") { updater.checkForUpdates() }
+                    // While a scheduled check's update waits, the check brings it in focus.
+                    Button(updater.availableUpdateVersion.map { "Update to OpenDisplay \($0)…" }
+                        ?? "Check for Updates…") { updater.checkForUpdates() }
                         .disabled(!updater.canCheckForUpdates)
                     Spacer()
                     Button("Quit") { confirmsQuit = true }

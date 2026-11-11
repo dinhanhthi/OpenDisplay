@@ -44,5 +44,21 @@ targets:
         # Debug is Developer ID-signed too, so the app's identity (and any grant tied to it) survives rebuilds
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "Developer ID Application"
-    # Empty on purpose: XcodeGen writes a shared scheme named OpenDisplay.
-    scheme: {}
+    # XcodeGen writes a shared scheme named OpenDisplay.
+    scheme:
+      testTargets:
+        - OpenDisplayTests
+  # Hostless: App/Display/Logic (pure functions) is compiled in directly, so `xcodebuild test` never launches OpenDisplay.
+  # No TEST_HOST and no dependency on the app (XcodeGen would infer a host).
+  "OpenDisplayTests":
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/OpenDisplayTests
+      - path: App/Display/Logic
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "com.math2it.opendisplay.tests"
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Automatic

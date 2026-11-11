@@ -23,10 +23,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Sparkle; stays off until `SUPublicEDKey` is set.
     let updater = Updater()
 
+    /// The connected displays and their modes.
+    let displayStore = DisplayStore()
+
     private var statusItemController: StatusItemController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        statusItemController = StatusItemController(updater: updater)
+        // The launch refresh: the modes load while the status item is set up.
+        displayStore.refresh()
+        statusItemController = StatusItemController(updater: updater, displayStore: displayStore)
         updater.start()
     }
 }

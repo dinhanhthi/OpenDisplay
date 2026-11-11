@@ -119,7 +119,7 @@ private struct LaunchAtLoginRow: View {
                 }
             } catch {
                 Logger(subsystem: "com.math2it.opendisplay", category: "LaunchAtLogin")
-                    .error("Launch at login failed: \(error.localizedDescription)")
+                    .error("Launch at login failed: \(error.localizedDescription, privacy: .public)")
             }
             // The real status: this reverts the switch when the call threw.
             sync()

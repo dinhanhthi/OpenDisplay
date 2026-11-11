@@ -15,13 +15,19 @@ final class StatusItemController: NSObject {
     private var isOpen = false
     private var escapeMonitor: Any?
     private var outsideClickMonitor: Any?
+    /// Refreshed when the popover opens; the display cards read it.
+    private let displayStore: DisplayStore
 
-    init(updater: Updater) {
+    init(updater: Updater, displayStore: DisplayStore) {
+        self.displayStore = displayStore
         super.init()
         setUpButton()
         popover.behavior = .applicationDefined
         let hostingController = NSHostingController(
-            rootView: PopoverView(updater: updater, onClose: { [weak self] in self?.close() }))
+            rootView: PopoverView(
+                updater: updater, store: displayStore,
+                setKeepsOpen: { [weak self] in self?.keepsOpen = $0 },
+                onClose: { [weak self] in self?.close() }))
         // The popover's size follows the SwiftUI content.
         hostingController.sizingOptions = .preferredContentSize
         // Load and lay out the view now, so the first click does not pay for it.
@@ -66,6 +72,11 @@ final class StatusItemController: NSObject {
     }
 
     @objc private func togglePopover() {
+        // The system closed the popover (a display change): it counts as closed, and this click opens it.
+        if isOpen, !popover.isShown {
+            isOpen = false
+            removeMonitors()
+        }
         if isOpen { close() } else { open() }
     }
 
@@ -75,8 +86,11 @@ final class StatusItemController: NSObject {
         // Up to the return of `show`, without the system's show animation.
         debugLog("Timing", "popover.open ms=\(Int((ContinuousClock.now - start) / .milliseconds(1)))")
         isOpen = true
-        // Key window in an active app, so Esc and text focus work.
-        NSApp.activate()
+        // Starts in the background, and only when the last refresh is more than 2 s old.
+        displayStore.refreshIfStale()
+        // Key window in an active app, so Esc and text focus work. The plain `activate()` can be denied for an
+        // app without a Dock icon.
+        NSApp.activate(ignoringOtherApps: true)
         popover.contentViewController?.view.window?.makeKey()
         installMonitors()
     }
@@ -103,6 +117,8 @@ final class StatusItemController: NSObject {
     }
 
     private func installMonitors() {
+        // Never two sets of monitors.
+        removeMonitors()
         // Esc in the popover's window, whatever has focus there.
         escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard event.keyCode == 53, let self,

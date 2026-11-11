@@ -7,8 +7,6 @@ build/
 release/
 xcuserdata/
 
-# Published guide (docs/** above ignores the rest of docs/)
-!docs/RELEASING.md
 
 # AI tool files (.coding-friend/ stays tracked)
 CLAUDE.md

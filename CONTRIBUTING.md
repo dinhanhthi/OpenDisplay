@@ -25,7 +25,7 @@ Debug and Release are both signed with a "Developer ID Application" identity, te
 - `App/`: the app (AppKit entry, SwiftUI popover). `PopoverView.swift`, `DisplayCard.swift`, `HiDPISection.swift` and `FooterView.swift` are the UI.
 - `App/Display/`: display access. DDC/CI, brightness, volume, rotation, color profiles, modes, and the HiDPI override installer. `PrivateAPI.swift` looks up the private functions at run time.
 - `App/Display/Logic/`: pure functions (HiDPI presets, override file format, DDC packets, mode grouping), with tests in `Tests/OpenDisplayTests/`.
-- `scripts/`: the release scripts, see [docs/RELEASING.md](docs/RELEASING.md).
+- `scripts/`: the release scripts (maintainer only).
 - `tools/`: probes from the first HiDPI tests.
 
 ## Be careful with real displays
@@ -49,4 +49,4 @@ Some code changes system state, so read it before you run it:
 - Say in the pull request what you ran on a real device, and on which displays.
 - Add user-facing changes under `## [Unreleased]` in `CHANGELOG.md`.
 
-Releases are made by the maintainer, see [docs/RELEASING.md](docs/RELEASING.md).
+Releases are made by the maintainer.

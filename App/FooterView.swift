@@ -25,6 +25,8 @@ struct FooterView: View {
 
     /// Collapsed on every launch, so screenshots show the display area.
     @State private var showsAbout = false
+    /// A first click on "Quit" asks in place; the row goes back when the popover closes.
+    @State private var confirmsQuit = false
     #if DEBUG
     @State private var loggedAbout = false
     #endif
@@ -47,13 +49,22 @@ struct FooterView: View {
             .buttonStyle(.plain)
             if showsAbout { AboutBlock() }
             HStack {
-                Button("Check for Updates…") { updater.checkForUpdates() }
-                    .disabled(!updater.canCheckForUpdates)
-                Spacer()
-                Button("Quit") { NSApp.terminate(nil) }
+                if confirmsQuit {
+                    Text("Quit OpenDisplay?")
+                    Spacer()
+                    Button("Cancel") { confirmsQuit = false }
+                    Button("Quit") { NSApp.terminate(nil) }
+                        .keyboardShortcut(.defaultAction)
+                } else {
+                    Button("Check for Updates…") { updater.checkForUpdates() }
+                        .disabled(!updater.canCheckForUpdates)
+                    Spacer()
+                    Button("Quit") { confirmsQuit = true }
+                }
             }
         }
         .padding(12)
+        .onDisappear { confirmsQuit = false }
         #if DEBUG
         .onAppear {
             // Once, not at every opening of the popover.

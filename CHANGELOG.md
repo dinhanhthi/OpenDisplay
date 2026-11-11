@@ -4,7 +4,7 @@ All notable changes to OpenDisplay are listed here. `scripts/publish-release.sh`
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-11-10
+## [0.1.0] - 2026-11-11
 
 ### Added
 
